@@ -19,7 +19,7 @@ dependencies {
     compileOnly 'org.jetbrains:annotations:23.0.0'
 
     implementation project(':conductor-common')
-    implementation "com.sun.jersey:jersey-client:${revJersey}"
+    implementation "org.glassfish.jersey.core:jersey-client:${revJersey}"
     implementation "javax.ws.rs:javax.ws.rs-api:${revJAXRS}"
     implementation "org.glassfish.jersey.core:jersey-common:${revJerseyCommon}"
 
