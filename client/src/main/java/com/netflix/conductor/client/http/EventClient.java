@@ -14,17 +14,16 @@ package com.netflix.conductor.client.http;
 
 import java.util.List;
 
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.ClientFilter;
+import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.Validate;
 
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.common.metadata.events.EventHandler;
+import org.glassfish.jersey.client.ClientConfig;
 
-import com.sun.jersey.api.client.ClientHandler;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.ClientFilter;
 
 // Client class for all Event Handler operations
 public class EventClient extends ClientBase {
@@ -43,39 +42,27 @@ public class EventClient extends ClientBase {
         this(clientConfig, new DefaultConductorClientConfiguration(), null);
     }
 
-    /**
-     * @param clientConfig REST Client configuration
-     * @param clientHandler Jersey client handler. Useful when plugging in various http client
-     *     interaction modules (e.g. ribbon)
-     */
-    public EventClient(ClientConfig clientConfig, ClientHandler clientHandler) {
-        this(clientConfig, new DefaultConductorClientConfiguration(), clientHandler);
-    }
 
     /**
      * @param config config REST Client configuration
-     * @param handler handler Jersey client handler. Useful when plugging in various http client
-     *     interaction modules (e.g. ribbon)
+
      * @param filters Chain of client side filters to be applied per request
      */
-    public EventClient(ClientConfig config, ClientHandler handler, ClientFilter... filters) {
-        this(config, new DefaultConductorClientConfiguration(), handler, filters);
+    public EventClient(ClientConfig config, ClientFilter... filters) {
+        this(config, new DefaultConductorClientConfiguration(),  filters);
     }
 
     /**
      * @param config REST Client configuration
      * @param clientConfiguration Specific properties configured for the client, see {@link
      *     ConductorClientConfiguration}
-     * @param handler Jersey client handler. Useful when plugging in various http client interaction
-     *     modules (e.g. ribbon)
      * @param filters Chain of client side filters to be applied per request
      */
     public EventClient(
             ClientConfig config,
             ConductorClientConfiguration clientConfiguration,
-            ClientHandler handler,
             ClientFilter... filters) {
-        super(new ClientRequestHandler(config, handler, filters), clientConfiguration);
+        super(new ClientRequestHandler(config, filters), clientConfiguration);
     }
 
     EventClient(ClientRequestHandler requestHandler) {

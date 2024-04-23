@@ -21,7 +21,16 @@ import java.util.Map;
 import java.util.function.Function;
 
 import javax.ws.rs.core.UriBuilder;
-
+//
+//import com.sun.jersey.api.client.ClientHandlerException;
+//import com.sun.jersey.api.client.ClientResponse;
+//import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.ClientHandlerException;
+import org.glassfish.jersey.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -39,11 +48,11 @@ import com.netflix.conductor.common.validation.ErrorResponse;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource.Builder;
+//import com.sun.jersey.api.client.ClientHandlerException;
+//import com.sun.jersey.api.client.ClientResponse;
+//import com.sun.jersey.api.client.GenericType;
+//import com.sun.jersey.api.client.UniformInterfaceException;
+//import com.sun.jersey.api.client.WebResource.Builder;
 
 /** Abstract client for the REST server */
 public abstract class ClientBase {
@@ -163,14 +172,14 @@ public abstract class ClientBase {
             Object request,
             Object[] queryParams,
             Object responseType,
-            Function<Builder, T> postWithEntity,
+            Function<Invocation.Builder, T> postWithEntity,
             Object... uriVariables) {
         URI uri = null;
         try {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
-            Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri, request);
+            Invocation.Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri);
             if (responseType == null) {
-                webResourceBuilder.post();
+                webResourceBuilder.post(request);
                 return null;
             }
             return postWithEntity.apply(webResourceBuilder);
@@ -356,32 +365,5 @@ public abstract class ClientBase {
         } else {
             handleRuntimeException(e, uri);
         }
-    }
-
-    /**
-     * Converts ClientResponse object to string with detailed debug information including status
-     * code, media type, response headers, and response body if exists.
-     */
-    private String clientResponseToString(ClientResponse response) {
-        if (response == null) {
-            return null;
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append("[status: ").append(response.getStatus());
-        builder.append(", media type: ").append(response.getType());
-        if (response.getStatus() != 404) {
-            try {
-                String responseBody = response.getEntity(String.class);
-                if (responseBody != null) {
-                    builder.append(", response body: ").append(responseBody);
-                }
-            } catch (RuntimeException ignore) {
-                // Ignore if there is no response body, or IO error - it may have already been read
-                // in certain scenario.
-            }
-        }
-        builder.append(", response headers: ").append(response.getHeaders());
-        builder.append("]");
-        return builder.toString();
     }
 }

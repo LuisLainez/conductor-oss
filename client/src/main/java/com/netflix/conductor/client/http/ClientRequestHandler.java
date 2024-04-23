@@ -14,7 +14,6 @@ package com.netflix.conductor.client.http;
 
 import java.net.URI;
 
-import javax.ws.rs.core.MediaType;
 
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.model.BulkResponse;
@@ -23,18 +22,21 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandler;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.filter.ClientFilter;
+
+
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.core.MediaType;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientResponse;
 
 public class ClientRequestHandler {
     private final Client client;
 
     public ClientRequestHandler(
-            ClientConfig config, ClientHandler handler, ClientFilter... filters) {
+            ClientConfig config, ClientRequestFilter... filters) {
         ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
         // https://github.com/FasterXML/jackson-databind/issues/2683
@@ -43,40 +45,35 @@ public class ClientRequestHandler {
         }
 
         JacksonJsonProvider provider = new JacksonJsonProvider(objectMapper);
-        config.getSingletons().add(provider);
+        config.register(provider);
 
-        if (handler == null) {
-            this.client = Client.create(config);
-        } else {
-            this.client = new Client(handler, config);
-        }
+        this.client =  ClientBuilder.newBuilder().newClient(config);
 
-        for (ClientFilter filter : filters) {
-            this.client.addFilter(filter);
+        for (ClientRequestFilter filter : filters) {
+            this.client.register(filter);
         }
     }
 
     public BulkResponse delete(URI uri, Object body) {
         if (body != null) {
-            return client.resource(uri)
-                    .type(MediaType.APPLICATION_JSON_TYPE)
-                    .delete(BulkResponse.class, body);
+            return client.target(uri)
+                    .request(MediaType.APPLICATION_JSON_TYPE)
+                    .delete(BulkResponse.class);
         } else {
-            client.resource(uri).delete();
+            client.target(uri).request().delete();
         }
         return null;
     }
 
     public ClientResponse get(URI uri) {
-        return client.resource(uri)
-                .accept(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
+        return client.target(uri)
+                .request(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
                 .get(ClientResponse.class);
     }
 
-    public WebResource.Builder getWebResourceBuilder(URI URI, Object entity) {
-        return client.resource(URI)
-                .type(MediaType.APPLICATION_JSON)
-                .entity(entity)
+    public Invocation.Builder getWebResourceBuilder(URI URI) {
+        return client.target(URI)
+                .request(MediaType.APPLICATION_JSON)
                 .accept(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON);
     }
 
