@@ -21,14 +21,11 @@ import java.util.Map;
 import java.util.function.Function;
 
 import javax.ws.rs.core.UriBuilder;
-//
-//import com.sun.jersey.api.client.ClientHandlerException;
-//import com.sun.jersey.api.client.ClientResponse;
-//import com.sun.jersey.api.client.UniformInterfaceException;
+
+import com.netflix.conductor.client.exception.UniformInterfaceException;
 import com.sun.jersey.api.client.ClientHandlerException;
+import jakarta.ws.rs.client.Entity;
 import org.glassfish.jersey.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.ObjectUtils;
@@ -48,13 +45,10 @@ import com.netflix.conductor.common.validation.ErrorResponse;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-//import com.sun.jersey.api.client.ClientHandlerException;
-//import com.sun.jersey.api.client.ClientResponse;
-//import com.sun.jersey.api.client.GenericType;
-//import com.sun.jersey.api.client.UniformInterfaceException;
-//import com.sun.jersey.api.client.WebResource.Builder;
 
-/** Abstract client for the REST server */
+/**
+ * Abstract client for the REST server
+ */
 public abstract class ClientBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientBase.class);
@@ -121,7 +115,7 @@ public abstract class ClientBase {
         URI uri = null;
         try {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
-            requestHandler.getWebResourceBuilder(uri, request).put();
+            requestHandler.getWebResourceBuilder(uri).put(Entity.json(request));
         } catch (RuntimeException e) {
             handleException(uri, e);
         }
@@ -148,7 +142,7 @@ public abstract class ClientBase {
                 request,
                 queryParams,
                 responseType,
-                builder -> builder.post(responseType),
+                builder -> builder.post(Entity.json(request), responseType),
                 uriVariables);
     }
 
@@ -163,7 +157,7 @@ public abstract class ClientBase {
                 request,
                 queryParams,
                 responseType,
-                builder -> builder.post(responseType),
+                builder -> builder.post(Entity.json(request), responseType),
                 uriVariables);
     }
 
@@ -171,7 +165,7 @@ public abstract class ClientBase {
             String url,
             Object request,
             Object[] queryParams,
-            Object responseType,
+            Class<T> responseType,
             Function<Invocation.Builder, T> postWithEntity,
             Object... uriVariables) {
         URI uri = null;
@@ -179,7 +173,31 @@ public abstract class ClientBase {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
             Invocation.Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri);
             if (responseType == null) {
-                webResourceBuilder.post(request);
+                webResourceBuilder.post(Entity.json(request), responseType);
+                return null;
+            }
+            return postWithEntity.apply(webResourceBuilder);
+        } catch (UniformInterfaceException e) {
+            handleUniformInterfaceException(e, uri);
+        } catch (RuntimeException e) {
+            handleRuntimeException(e, uri);
+        }
+        return null;
+    }
+
+    private <T> T postForEntity(
+            String url,
+            Object request,
+            Object[] queryParams,
+            GenericType<T> responseType,
+            Function<Invocation.Builder, T> postWithEntity,
+            Object... uriVariables) {
+        URI uri = null;
+        try {
+            uri = getURIBuilder(root + url, queryParams).build(uriVariables);
+            Invocation.Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri);
+            if (responseType == null) {
+                webResourceBuilder.post(Entity.json(request), responseType);
                 return null;
             }
             return postWithEntity.apply(webResourceBuilder);
@@ -194,13 +212,13 @@ public abstract class ClientBase {
     protected <T> T getForEntity(
             String url, Object[] queryParams, Class<T> responseType, Object... uriVariables) {
         return getForEntity(
-                url, queryParams, response -> response.getEntity(responseType), uriVariables);
+                url, queryParams, response -> response.readEntity(responseType), uriVariables);
     }
 
     protected <T> T getForEntity(
             String url, Object[] queryParams, GenericType<T> responseType, Object... uriVariables) {
         return getForEntity(
-                url, queryParams, response -> response.getEntity(responseType), uriVariables);
+                url, queryParams, response -> response.readEntity(responseType), uriVariables);
     }
 
     private <T> T getForEntity(
@@ -230,10 +248,10 @@ public abstract class ClientBase {
      * Uses the {@link PayloadStorage} for storing large payloads. Gets the uri for storing the
      * payload from the server and then uploads to this location
      *
-     * @param payloadType the {@link
-     *     com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be uploaded
+     * @param payloadType  the {@link
+     *                     com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be uploaded
      * @param payloadBytes the byte array containing the payload
-     * @param payloadSize the size of the payload
+     * @param payloadSize  the size of the payload
      * @return the path where the payload is stored in external storage
      */
     protected String uploadToExternalPayloadStorage(
@@ -256,8 +274,8 @@ public abstract class ClientBase {
      * the uri of the payload fom the server and then downloads from this location.
      *
      * @param payloadType the {@link
-     *     com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be downloaded
-     * @param path the relative of the payload in external storage
+     *                    com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be downloaded
+     * @param path        the relative of the payload in external storage
      * @return the payload object that is stored in external storage
      */
     @SuppressWarnings("unchecked")
@@ -333,7 +351,7 @@ public abstract class ClientBase {
             if (clientResponse.getStatus() < 300) {
                 return;
             }
-            String errorMessage = clientResponse.getEntity(String.class);
+            String errorMessage = clientResponse.readEntity(String.class);
             LOGGER.warn(
                     "Unable to invoke Conductor API with uri: {}, unexpected response from server: statusCode={}, responseBody='{}'.",
                     uri,

@@ -14,8 +14,7 @@ package com.netflix.conductor.client.http;
 
 import java.util.List;
 
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.ClientFilter;
+import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.Validate;
 
@@ -33,7 +32,7 @@ public class MetadataClient extends ClientBase {
 
     /** Creates a default metadata client */
     public MetadataClient() {
-        this(new DefaultConductorClientConfiguration());
+        this(new ClientConfig(), new DefaultConductorClientConfiguration());
     }
 
     /**
@@ -47,7 +46,7 @@ public class MetadataClient extends ClientBase {
      * @param config config REST Client configuration
      * @param filters Chain of client side filters to be applied per request
      */
-    public MetadataClient(ClientConfig config,  ClientFilter... filters) {
+    public MetadataClient(ClientConfig config,  ClientRequestFilter... filters) {
         this(config, new DefaultConductorClientConfiguration(),  filters);
     }
 
@@ -60,7 +59,7 @@ public class MetadataClient extends ClientBase {
     public MetadataClient(
             ClientConfig config,
             ConductorClientConfiguration clientConfiguration,
-            ClientFilter... filters) {
+            ClientRequestFilter... filters) {
         super(new ClientRequestHandler(config, filters), clientConfiguration);
     }
 

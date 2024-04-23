@@ -19,9 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.ws.rs.client.ClientRequestFilter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,37 +40,43 @@ import com.netflix.conductor.common.run.TaskSummary;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType;
 
-import com.sun.jersey.api.client.ClientHandler;
 import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.ClientFilter;
 
-/** Client for conductor task management including polling for task, updating task status etc. */
+/**
+ * Client for conductor task management including polling for task, updating task status etc.
+ */
 public class TaskClient extends ClientBase {
 
-    private static final GenericType<List<Task>> taskList = new GenericType<List<Task>>() {};
+    private static final GenericType<List<Task>> taskList = new GenericType<List<Task>>() {
+    };
 
     private static final GenericType<List<TaskExecLog>> taskExecLogList =
-            new GenericType<List<TaskExecLog>>() {};
+            new GenericType<List<TaskExecLog>>() {
+            };
 
     private static final GenericType<List<PollData>> pollDataList =
-            new GenericType<List<PollData>>() {};
+            new GenericType<List<PollData>>() {
+            };
 
     private static final GenericType<SearchResult<TaskSummary>> searchResultTaskSummary =
-            new GenericType<SearchResult<TaskSummary>>() {};
+            new GenericType<SearchResult<TaskSummary>>() {
+            };
 
     private static final GenericType<SearchResult<Task>> searchResultTask =
-            new GenericType<SearchResult<Task>>() {};
+            new GenericType<SearchResult<Task>>() {
+            };
 
     private static final GenericType<Map<String, Integer>> queueSizeMap =
-            new GenericType<Map<String, Integer>>() {};
+            new GenericType<Map<String, Integer>>() {
+            };
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskClient.class);
 
-    /** Creates a default task client */
+    /**
+     * Creates a default task client
+     */
     public TaskClient() {
-        this(new DefaultClientConfig(), new DefaultConductorClientConfiguration(), null);
+        this(new ClientConfig(), new DefaultConductorClientConfiguration(), null);
     }
 
     /**
@@ -79,38 +87,24 @@ public class TaskClient extends ClientBase {
     }
 
     /**
-     * @param config REST Client configuration
-     * @param handler Jersey client handler. Useful when plugging in various http client interaction
-     *     modules (e.g. ribbon)
-     */
-    public TaskClient(ClientConfig config, ClientHandler handler) {
-        this(config, new DefaultConductorClientConfiguration(), handler);
-    }
-
-    /**
-     * @param config REST Client configuration
-     * @param handler Jersey client handler. Useful when plugging in various http client interaction
-     *     modules (e.g. ribbon)
+     * @param config  REST Client configuration
      * @param filters Chain of client side filters to be applied per request
      */
-    public TaskClient(ClientConfig config, ClientHandler handler, ClientFilter... filters) {
-        this(config, new DefaultConductorClientConfiguration(), handler, filters);
+    public TaskClient(ClientConfig config, ClientRequestFilter... filters) {
+        this(config, new DefaultConductorClientConfiguration(), filters);
     }
 
     /**
-     * @param config REST Client configuration
+     * @param config              REST Client configuration
      * @param clientConfiguration Specific properties configured for the client, see {@link
-     *     ConductorClientConfiguration}
-     * @param handler Jersey client handler. Useful when plugging in various http client interaction
-     *     modules (e.g. ribbon)
-     * @param filters Chain of client side filters to be applied per request
+     *                            ConductorClientConfiguration}
+     * @param filters             Chain of client side filters to be applied per request
      */
     public TaskClient(
             ClientConfig config,
             ConductorClientConfiguration clientConfiguration,
-            ClientHandler handler,
-            ClientFilter... filters) {
-        super(new ClientRequestHandler(config, handler, filters), clientConfiguration);
+            ClientRequestFilter... filters) {
+        super(new ClientRequestHandler(config, filters), clientConfiguration);
     }
 
     TaskClient(ClientRequestHandler requestHandler) {
@@ -121,7 +115,7 @@ public class TaskClient extends ClientBase {
      * Perform a poll for a task of a specific task type.
      *
      * @param taskType The taskType to poll for
-     * @param domain The domain of the task type
+     * @param domain   The domain of the task type
      * @param workerId Name of the client worker. Used for logging.
      * @return Task waiting to be executed.
      */
@@ -129,7 +123,7 @@ public class TaskClient extends ClientBase {
         Validate.notBlank(taskType, "Task type cannot be blank");
         Validate.notBlank(workerId, "Worker id cannot be blank");
 
-        Object[] params = new Object[] {"workerid", workerId, "domain", domain};
+        Object[] params = new Object[]{"workerid", workerId, "domain", domain};
         Task task =
                 ObjectUtils.defaultIfNull(
                         getForEntity("tasks/poll/{taskType}", params, Task.class, taskType),
@@ -141,10 +135,10 @@ public class TaskClient extends ClientBase {
     /**
      * Perform a batch poll for tasks by task type. Batch size is configurable by count.
      *
-     * @param taskType Type of task to poll for
-     * @param workerId Name of the client worker. Used for logging.
-     * @param count Maximum number of tasks to be returned. Actual number of tasks returned can be
-     *     less than this number.
+     * @param taskType             Type of task to poll for
+     * @param workerId             Name of the client worker. Used for logging.
+     * @param count                Maximum number of tasks to be returned. Actual number of tasks returned can be
+     *                             less than this number.
      * @param timeoutInMillisecond Long poll wait timeout.
      * @return List of tasks awaiting to be executed.
      */
@@ -155,8 +149,8 @@ public class TaskClient extends ClientBase {
         Validate.isTrue(count > 0, "Count must be greater than 0");
 
         Object[] params =
-                new Object[] {
-                    "workerid", workerId, "count", count, "timeout", timeoutInMillisecond
+                new Object[]{
+                        "workerid", workerId, "count", count, "timeout", timeoutInMillisecond
                 };
         List<Task> tasks = getForEntity("tasks/poll/batch/{taskType}", params, taskList, taskType);
         tasks.forEach(this::populateTaskPayloads);
@@ -166,11 +160,11 @@ public class TaskClient extends ClientBase {
     /**
      * Batch poll for tasks in a domain. Batch size is configurable by count.
      *
-     * @param taskType Type of task to poll for
-     * @param domain The domain of the task type
-     * @param workerId Name of the client worker. Used for logging.
-     * @param count Maximum number of tasks to be returned. Actual number of tasks returned can be
-     *     less than this number.
+     * @param taskType             Type of task to poll for
+     * @param domain               The domain of the task type
+     * @param workerId             Name of the client worker. Used for logging.
+     * @param count                Maximum number of tasks to be returned. Actual number of tasks returned can be
+     *                             less than this number.
      * @param timeoutInMillisecond Long poll wait timeout.
      * @return List of tasks awaiting to be executed.
      */
@@ -181,15 +175,15 @@ public class TaskClient extends ClientBase {
         Validate.isTrue(count > 0, "Count must be greater than 0");
 
         Object[] params =
-                new Object[] {
-                    "workerid",
-                    workerId,
-                    "count",
-                    count,
-                    "timeout",
-                    timeoutInMillisecond,
-                    "domain",
-                    domain
+                new Object[]{
+                        "workerid",
+                        workerId,
+                        "count",
+                        count,
+                        "timeout",
+                        timeoutInMillisecond,
+                        "domain",
+                        domain
                 };
         List<Task> tasks = getForEntity("tasks/poll/batch/{taskType}", params, taskList, taskType);
         tasks.forEach(this::populateTaskPayloads);
@@ -253,8 +247,8 @@ public class TaskClient extends ClientBase {
             if (taskResultSize > payloadSizeThreshold) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled()
                         || taskResultSize
-                                > conductorClientConfiguration.getTaskOutputMaxPayloadThresholdKB()
-                                        * 1024L) {
+                        > conductorClientConfiguration.getTaskOutputMaxPayloadThresholdKB()
+                        * 1024L) {
                     throw new IllegalArgumentException(
                             String.format(
                                     "The TaskResult payload size: %d is greater than the permissible %d bytes",
@@ -279,10 +273,10 @@ public class TaskClient extends ClientBase {
     /**
      * Ack for the task poll.
      *
-     * @param taskId Id of the task to be polled
+     * @param taskId   Id of the task to be polled
      * @param workerId user identified worker.
      * @return true if the task was found with the given ID and acknowledged. False otherwise. If
-     *     the server returns false, the client should NOT attempt to ack again.
+     * the server returns false, the client should NOT attempt to ack again.
      */
     public Boolean ack(String taskId, String workerId) {
         Validate.notBlank(taskId, "Task id cannot be blank");
@@ -291,7 +285,7 @@ public class TaskClient extends ClientBase {
                 postForEntity(
                         "tasks/{taskId}/ack",
                         null,
-                        new Object[] {"workerid", workerId},
+                        new Object[]{"workerid", workerId},
                         String.class,
                         taskId);
         return Boolean.valueOf(response);
@@ -300,7 +294,7 @@ public class TaskClient extends ClientBase {
     /**
      * Log execution messages for a task.
      *
-     * @param taskId id of the task
+     * @param taskId     id of the task
      * @param logMessage the message to be logged
      */
     public void logMessageForTask(String taskId, String logMessage) {
@@ -333,7 +327,7 @@ public class TaskClient extends ClientBase {
      * Removes a task from a taskType queue
      *
      * @param taskType the taskType to identify the queue
-     * @param taskId the id of the task to be removed
+     * @param taskId   the id of the task to be removed
      */
     public void removeTaskFromQueue(String taskType, String taskId) {
         Validate.notBlank(taskType, "Task type cannot be blank");
@@ -348,8 +342,9 @@ public class TaskClient extends ClientBase {
         Integer queueSize =
                 getForEntity(
                         "tasks/queue/size",
-                        new Object[] {"taskType", taskType},
-                        new GenericType<Integer>() {});
+                        new Object[]{"taskType", taskType},
+                        new GenericType<Integer>() {
+                        });
         return queueSize != null ? queueSize : 0;
     }
 
@@ -380,7 +375,8 @@ public class TaskClient extends ClientBase {
                 getForEntity(
                         "tasks/queue/size",
                         params.toArray(new Object[0]),
-                        new GenericType<Integer>() {});
+                        new GenericType<Integer>() {
+                        });
         return queueSize != null ? queueSize : 0;
     }
 
@@ -393,7 +389,7 @@ public class TaskClient extends ClientBase {
     public List<PollData> getPollData(String taskType) {
         Validate.notBlank(taskType, "Task type cannot be blank");
 
-        Object[] params = new Object[] {"taskType", taskType};
+        Object[] params = new Object[]{"taskType", taskType};
         return getForEntity("tasks/queue/polldata", params, pollDataList);
     }
 
@@ -430,10 +426,10 @@ public class TaskClient extends ClientBase {
      *
      * @param query the search string
      * @return returns the {@link SearchResult} containing the {@link TaskSummary} matching the
-     *     query
+     * query
      */
     public SearchResult<TaskSummary> search(String query) {
-        return getForEntity("tasks/search", new Object[] {"query", query}, searchResultTaskSummary);
+        return getForEntity("tasks/search", new Object[]{"query", query}, searchResultTaskSummary);
     }
 
     /**
@@ -443,24 +439,24 @@ public class TaskClient extends ClientBase {
      * @return returns the {@link SearchResult} containing the {@link Task} matching the query
      */
     public SearchResult<Task> searchV2(String query) {
-        return getForEntity("tasks/search-v2", new Object[] {"query", query}, searchResultTask);
+        return getForEntity("tasks/search-v2", new Object[]{"query", query}, searchResultTask);
     }
 
     /**
      * Paginated search for tasks based on payload
      *
-     * @param start start value of page
-     * @param size number of tasks to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of tasks to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
+     * @param query    the search query
      * @return the {@link SearchResult} containing the {@link TaskSummary} that match the query
      */
     public SearchResult<TaskSummary> search(
             Integer start, Integer size, String sort, String freeText, String query) {
         Object[] params =
-                new Object[] {
-                    "start", start, "size", size, "sort", sort, "freeText", freeText, "query", query
+                new Object[]{
+                        "start", start, "size", size, "sort", sort, "freeText", freeText, "query", query
                 };
         return getForEntity("tasks/search", params, searchResultTaskSummary);
     }
@@ -468,18 +464,18 @@ public class TaskClient extends ClientBase {
     /**
      * Paginated search for tasks based on payload
      *
-     * @param start start value of page
-     * @param size number of tasks to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of tasks to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
+     * @param query    the search query
      * @return the {@link SearchResult} containing the {@link Task} that match the query
      */
     public SearchResult<Task> searchV2(
             Integer start, Integer size, String sort, String freeText, String query) {
         Object[] params =
-                new Object[] {
-                    "start", start, "size", size, "sort", sort, "freeText", freeText, "query", query
+                new Object[]{
+                        "start", start, "size", size, "sort", sort, "freeText", freeText, "query", query
                 };
         return getForEntity("tasks/search-v2", params, searchResultTask);
     }

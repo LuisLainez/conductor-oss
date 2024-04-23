@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 import jakarta.ws.rs.client.ClientRequestFilter;
+import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,15 +91,15 @@ public class WorkflowExecutor {
     public WorkflowExecutor(
             String apiServerURL, int pollingInterval, ClientRequestFilter... clientFilter) {
 
-        taskClient = new TaskClient(new DefaultClientConfig(),  clientFilter);
+        taskClient = new TaskClient(new ClientConfig(),  clientFilter);
         taskClient.setRootURI(apiServerURL);
 
         workflowClient =
-                new WorkflowClient(new DefaultClientConfig(),  clientFilter);
+                new WorkflowClient(new ClientConfig(),  clientFilter);
         workflowClient.setRootURI(apiServerURL);
 
         metadataClient =
-                new MetadataClient(new DefaultClientConfig(),  clientFilter);
+                new MetadataClient(new ClientConfig(),  clientFilter);
         metadataClient.setRootURI(apiServerURL);
 
         annotatedWorkerExecutor = new AnnotatedWorkerExecutor(taskClient, pollingInterval);
