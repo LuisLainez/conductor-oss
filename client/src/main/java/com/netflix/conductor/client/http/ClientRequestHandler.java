@@ -14,6 +14,8 @@ package com.netflix.conductor.client.http;
 
 import java.net.URI;
 
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientResponse;
 
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.model.BulkResponse;
@@ -22,21 +24,16 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
-
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.MediaType;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientResponse;
 
 public class ClientRequestHandler {
     private final Client client;
 
-    public ClientRequestHandler(
-            ClientConfig config, ClientRequestFilter... filters) {
+    public ClientRequestHandler(ClientConfig config, ClientRequestFilter... filters) {
         ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
         // https://github.com/FasterXML/jackson-databind/issues/2683
@@ -47,7 +44,7 @@ public class ClientRequestHandler {
         JacksonJsonProvider provider = new JacksonJsonProvider(objectMapper);
         config.register(provider);
 
-        this.client =  ClientBuilder.newBuilder().newClient(config);
+        this.client = ClientBuilder.newBuilder().newClient(config);
 
         for (ClientRequestFilter filter : filters) {
             this.client.register(filter);

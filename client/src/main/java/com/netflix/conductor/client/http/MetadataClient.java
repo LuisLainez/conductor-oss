@@ -14,16 +14,16 @@ package com.netflix.conductor.client.http;
 
 import java.util.List;
 
-import jakarta.ws.rs.client.ClientRequestFilter;
-import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.Validate;
+import org.glassfish.jersey.client.ClientConfig;
 
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
-import org.glassfish.jersey.client.ClientConfig;
 
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.GenericType;
 
 public class MetadataClient extends ClientBase {
 
@@ -46,8 +46,8 @@ public class MetadataClient extends ClientBase {
      * @param config config REST Client configuration
      * @param filters Chain of client side filters to be applied per request
      */
-    public MetadataClient(ClientConfig config,  ClientRequestFilter... filters) {
-        this(config, new DefaultConductorClientConfiguration(),  filters);
+    public MetadataClient(ClientConfig config, ClientRequestFilter... filters) {
+        this(config, new DefaultConductorClientConfiguration(), filters);
     }
 
     /**

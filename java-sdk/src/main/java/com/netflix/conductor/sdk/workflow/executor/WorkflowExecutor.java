@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
-import jakarta.ws.rs.client.ClientRequestFilter;
 import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +38,7 @@ import com.netflix.conductor.sdk.workflow.utils.ObjectMapperProvider;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.ws.rs.client.ClientRequestFilter;
 
 public class WorkflowExecutor {
 
@@ -91,15 +91,13 @@ public class WorkflowExecutor {
     public WorkflowExecutor(
             String apiServerURL, int pollingInterval, ClientRequestFilter... clientFilter) {
 
-        taskClient = new TaskClient(new ClientConfig(),  clientFilter);
+        taskClient = new TaskClient(new ClientConfig(), clientFilter);
         taskClient.setRootURI(apiServerURL);
 
-        workflowClient =
-                new WorkflowClient(new ClientConfig(),  clientFilter);
+        workflowClient = new WorkflowClient(new ClientConfig(), clientFilter);
         workflowClient.setRootURI(apiServerURL);
 
-        metadataClient =
-                new MetadataClient(new ClientConfig(),  clientFilter);
+        metadataClient = new MetadataClient(new ClientConfig(), clientFilter);
         metadataClient.setRootURI(apiServerURL);
 
         annotatedWorkerExecutor = new AnnotatedWorkerExecutor(taskClient, pollingInterval);

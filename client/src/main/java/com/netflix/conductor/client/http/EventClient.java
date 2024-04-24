@@ -14,17 +14,15 @@ package com.netflix.conductor.client.http;
 
 import java.util.List;
 
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.ClientFilter;
-import jakarta.ws.rs.client.ClientRequestFilter;
-import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.Validate;
+import org.glassfish.jersey.client.ClientConfig;
 
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.common.metadata.events.EventHandler;
-import org.glassfish.jersey.client.ClientConfig;
 
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.GenericType;
 
 // Client class for all Event Handler operations
 public class EventClient extends ClientBase {
@@ -43,14 +41,12 @@ public class EventClient extends ClientBase {
         this(clientConfig, new DefaultConductorClientConfiguration(), null);
     }
 
-
     /**
      * @param config config REST Client configuration
-
      * @param filters Chain of client side filters to be applied per request
      */
     public EventClient(ClientConfig config, ClientRequestFilter... filters) {
-        this(config, new DefaultConductorClientConfiguration(),  filters);
+        this(config, new DefaultConductorClientConfiguration(), filters);
     }
 
     /**

@@ -16,8 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-import jakarta.ws.rs.client.ClientRequestFilter;
-import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.glassfish.jersey.client.ClientConfig;
@@ -37,6 +35,8 @@ import com.netflix.conductor.common.run.WorkflowSummary;
 import com.netflix.conductor.common.run.WorkflowTestRequest;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.GenericType;
 
 public class WorkflowClient extends ClientBase {
 
@@ -65,21 +65,20 @@ public class WorkflowClient extends ClientBase {
      * @param filters Chain of client side filters to be applied per request
      */
     public WorkflowClient(ClientConfig config, ClientRequestFilter... filters) {
-        this(config, new DefaultConductorClientConfiguration(),  filters);
+        this(config, new DefaultConductorClientConfiguration(), filters);
     }
 
     /**
      * @param config REST Client configuration
      * @param clientConfiguration Specific properties configured for the client, see {@link
      *     ConductorClientConfiguration}
-
      * @param filters Chain of client side filters to be applied per request
      */
     public WorkflowClient(
             ClientConfig config,
             ConductorClientConfiguration clientConfiguration,
             ClientRequestFilter... filters) {
-        super(new ClientRequestHandler(config,  filters), clientConfiguration);
+        super(new ClientRequestHandler(config, filters), clientConfiguration);
     }
 
     WorkflowClient(ClientRequestHandler requestHandler) {
