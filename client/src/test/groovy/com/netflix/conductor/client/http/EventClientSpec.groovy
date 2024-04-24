@@ -12,11 +12,11 @@
  */
 package com.netflix.conductor.client.http
 
-import jakarta.ws.rs.client.Entity
 import org.glassfish.jersey.client.ClientResponse
 
 import com.netflix.conductor.common.metadata.events.EventHandler
 
+import jakarta.ws.rs.client.Entity
 import jakarta.ws.rs.client.Invocation
 import spock.lang.Subject
 import spock.lang.Unroll
