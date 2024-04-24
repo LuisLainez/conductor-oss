@@ -12,11 +12,12 @@
  */
 package com.netflix.conductor.client.http
 
+import org.glassfish.jersey.client.ClientResponse
+
 import com.netflix.conductor.common.metadata.tasks.Task
 import com.netflix.conductor.common.run.SearchResult
 import com.netflix.conductor.common.run.TaskSummary
 
-import com.sun.jersey.api.client.ClientResponse
 import spock.lang.Subject
 
 class TaskClientSpec extends ClientSpecification {

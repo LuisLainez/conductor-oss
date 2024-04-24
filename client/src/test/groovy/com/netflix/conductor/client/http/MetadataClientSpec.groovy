@@ -11,11 +11,11 @@
  * specific language governing permissions and limitations under the License.
  */
 package com.netflix.conductor.client.http
+import org.glassfish.jersey.client.ClientResponse
 
 import com.netflix.conductor.client.exception.ConductorClientException
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef
 
-import com.sun.jersey.api.client.ClientResponse
 import spock.lang.Subject
 
 class MetadataClientSpec extends ClientSpecification {
