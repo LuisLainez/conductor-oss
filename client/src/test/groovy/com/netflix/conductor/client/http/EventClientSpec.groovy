@@ -12,10 +12,11 @@
  */
 package com.netflix.conductor.client.http
 
+import org.glassfish.jersey.client.ClientResponse
+
 import com.netflix.conductor.common.metadata.events.EventHandler
 
-import com.sun.jersey.api.client.ClientResponse
-import com.sun.jersey.api.client.WebResource
+import jakarta.ws.rs.client.Invocation
 import spock.lang.Subject
 import spock.lang.Unroll
 
@@ -33,12 +34,11 @@ class EventClientSpec extends ClientSpecification {
         given:
         EventHandler handler = new EventHandler()
         URI uri = createURI("event")
-
         when:
         eventClient.registerEventHandler(handler)
 
         then:
-        1 * requestHandler.getWebResourceBuilder(uri, handler) >> Mock(WebResource.Builder.class)
+        1 * requestHandler.getWebResourceBuilder(uri, handler) >> Mock(Invocation.Builder.class)
     }
 
     def "update event handler"() {
@@ -50,7 +50,7 @@ class EventClientSpec extends ClientSpecification {
         eventClient.updateEventHandler(handler)
 
         then:
-        1 * requestHandler.getWebResourceBuilder(uri, handler) >> Mock(WebResource.Builder.class)
+        1 * requestHandler.getWebResourceBuilder(uri, handler) >> Mock(Invocation.Builder.class)
     }
 
     def "unregister event handler"() {
