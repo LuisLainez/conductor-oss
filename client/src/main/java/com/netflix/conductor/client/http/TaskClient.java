@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -40,7 +41,6 @@ import com.netflix.conductor.common.run.TaskSummary;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType;
 
-import com.sun.jersey.api.client.GenericType;
 
 /**
  * Client for conductor task management including polling for task, updating task status etc.

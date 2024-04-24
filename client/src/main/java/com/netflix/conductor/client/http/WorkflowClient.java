@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.GenericType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.glassfish.jersey.client.ClientConfig;
@@ -36,7 +37,6 @@ import com.netflix.conductor.common.run.WorkflowSummary;
 import com.netflix.conductor.common.run.WorkflowTestRequest;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 
-import com.sun.jersey.api.client.GenericType;
 
 public class WorkflowClient extends ClientBase {
 
