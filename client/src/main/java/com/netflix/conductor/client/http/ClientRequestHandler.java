@@ -14,6 +14,7 @@ package com.netflix.conductor.client.http;
 
 import java.net.URI;
 
+import jakarta.ws.rs.core.GenericType;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientResponse;
 
@@ -66,6 +67,18 @@ public class ClientRequestHandler {
         return client.target(uri)
                 .request(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
                 .get(ClientResponse.class);
+    }
+
+    public <T> T get(URI uri, Class<T> type) {
+        return client.target(uri)
+                .request(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
+                .get(type);
+    }
+
+    public <T> T getWithGenericType(URI uri, GenericType<T> type) {
+        return client.target(uri)
+                .request(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
+                .get(type);
     }
 
     public Invocation.Builder getWebResourceBuilder(URI URI) {
