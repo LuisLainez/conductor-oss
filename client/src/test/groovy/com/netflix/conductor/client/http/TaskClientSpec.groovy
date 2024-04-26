@@ -44,7 +44,7 @@ class TaskClientSpec extends ClientSpecification {
 
         then:
         1 * requestHandler.get(uri) >>  Mock(ClientResponse.class) {
-            getEntity(_) >> result
+            readEntity(_) >> result
         }
 
         searchResult.totalHits == result.totalHits
@@ -66,7 +66,7 @@ class TaskClientSpec extends ClientSpecification {
 
         then:
         1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            getEntity(_) >> result
+            readEntity(_) >> result
         }
 
         searchResult.totalHits == result.totalHits
@@ -92,7 +92,7 @@ class TaskClientSpec extends ClientSpecification {
 
         then:
         1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            getEntity(_) >> result
+            readEntity(_) >> result
         }
 
         searchResult.totalHits == result.totalHits
@@ -118,7 +118,7 @@ class TaskClientSpec extends ClientSpecification {
 
         then:
         1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            getEntity(_) >> result
+            readEntity(_) >> result
         }
 
         searchResult.totalHits == result.totalHits
