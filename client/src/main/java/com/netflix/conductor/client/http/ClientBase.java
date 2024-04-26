@@ -46,9 +46,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.GenericType;
 
-/**
- * Abstract client for the REST server
- */
+/** Abstract client for the REST server */
 public abstract class ClientBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientBase.class);
@@ -237,15 +235,14 @@ public abstract class ClientBase {
         return null;
     }
 
-
     /**
      * Uses the {@link PayloadStorage} for storing large payloads. Gets the uri for storing the
      * payload from the server and then uploads to this location
      *
-     * @param payloadType  the {@link
-     *                     com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be uploaded
+     * @param payloadType the {@link
+     *     com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be uploaded
      * @param payloadBytes the byte array containing the payload
-     * @param payloadSize  the size of the payload
+     * @param payloadSize the size of the payload
      * @return the path where the payload is stored in external storage
      */
     protected String uploadToExternalPayloadStorage(
@@ -268,8 +265,8 @@ public abstract class ClientBase {
      * the uri of the payload fom the server and then downloads from this location.
      *
      * @param payloadType the {@link
-     *                    com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be downloaded
-     * @param path        the relative of the payload in external storage
+     *     com.netflix.conductor.common.utils.ExternalPayloadStorage.PayloadType} to be downloaded
+     * @param path the relative of the payload in external storage
      * @return the payload object that is stored in external storage
      */
     @SuppressWarnings("unchecked")
