@@ -66,14 +66,14 @@ public class TaskClient extends ClientBase {
 
     /** Creates a default task client */
     public TaskClient() {
-        this(new ClientConfig(), new DefaultConductorClientConfiguration(), null);
+        this(new ClientConfig(), new DefaultConductorClientConfiguration());
     }
 
     /**
      * @param config REST Client configuration
      */
     public TaskClient(ClientConfig config) {
-        this(config, new DefaultConductorClientConfiguration(), null);
+        this(config, new DefaultConductorClientConfiguration());
     }
 
     /**

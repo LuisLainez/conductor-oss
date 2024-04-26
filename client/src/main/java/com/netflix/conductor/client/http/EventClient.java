@@ -31,14 +31,14 @@ public class EventClient extends ClientBase {
 
     /** Creates a default metadata client */
     public EventClient() {
-        this(new ClientConfig(), new DefaultConductorClientConfiguration(), null);
+        this(new ClientConfig(), new DefaultConductorClientConfiguration());
     }
 
     /**
      * @param clientConfig REST Client configuration
      */
     public EventClient(ClientConfig clientConfig) {
-        this(clientConfig, new DefaultConductorClientConfiguration(), null);
+        this(clientConfig, new DefaultConductorClientConfiguration());
     }
 
     /**

@@ -44,7 +44,7 @@ public class ClientRequestHandler {
         JacksonJsonProvider provider = new JacksonJsonProvider(objectMapper);
         config.register(provider);
 
-        this.client = ClientBuilder.newBuilder().newClient(config);
+        this.client = ClientBuilder.newClient(config);
 
         for (ClientRequestFilter filter : filters) {
             this.client.register(filter);

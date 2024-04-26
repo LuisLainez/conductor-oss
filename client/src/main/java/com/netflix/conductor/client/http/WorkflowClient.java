@@ -50,14 +50,14 @@ public class WorkflowClient extends ClientBase {
 
     /** Creates a default workflow client */
     public WorkflowClient() {
-        this(new ClientConfig(), new DefaultConductorClientConfiguration(), null);
+        this(new ClientConfig(), new DefaultConductorClientConfiguration());
     }
 
     /**
      * @param config REST Client configuration
      */
     public WorkflowClient(ClientConfig config) {
-        this(config, new DefaultConductorClientConfiguration(), null);
+        this(config, new DefaultConductorClientConfiguration());
     }
 
     /**
