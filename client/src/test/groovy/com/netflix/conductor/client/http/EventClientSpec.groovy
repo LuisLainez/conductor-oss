@@ -42,7 +42,7 @@ class EventClientSpec extends ClientSpecification {
 
         then:
         1 * requestHandler.getWebResourceBuilder(uri) >> invocationBuilder
-        1 * invocationBuilder.post(Entity.json(handler), null)
+        1 * invocationBuilder.post(Entity.json(handler))
 
     }
 

@@ -23,7 +23,7 @@ dependencies {
     implementation "org.apache.commons:commons-lang3"
     implementation "jakarta.annotation:jakarta.annotation-api:${revJakartaAnnotation}"
     implementation "com.google.guava:guava:${revGuava}"
-    implementation "com.fasterxml.jackson.core:jackson-databind"
-    implementation "com.fasterxml.jackson.core:jackson-core"
-    implementation "com.fasterxml.jackson.core:jackson-annotations"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${revFasterXml}"
+    implementation "com.fasterxml.jackson.core:jackson-core:${revFasterXml}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${revFasterXml}"
 }

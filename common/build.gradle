@@ -20,7 +20,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:${revFasterXml}"
     implementation "com.fasterxml.jackson.core:jackson-core:${revFasterXml}"
     // https://github.com/FasterXML/jackson-modules-base/tree/master/afterburner
-    implementation "com.fasterxml.jackson.module:jackson-module-afterburner:${revFasterXml}"
+    implementation "com.fasterxml.jackson.module:jackson-module-afterburner"
 
     testImplementation 'org.springframework.boot:spring-boot-starter-validation'
 }
