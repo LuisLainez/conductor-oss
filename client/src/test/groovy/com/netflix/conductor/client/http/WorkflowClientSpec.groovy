@@ -12,13 +12,12 @@
  */
 package com.netflix.conductor.client.http
 
-import org.glassfish.jersey.client.ClientResponse
-
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef
 import com.netflix.conductor.common.run.SearchResult
 import com.netflix.conductor.common.run.Workflow
 import com.netflix.conductor.common.run.WorkflowSummary
 
+import jakarta.ws.rs.core.GenericType
 import spock.lang.Subject
 
 class WorkflowClientSpec extends ClientSpecification {
@@ -37,16 +36,15 @@ class WorkflowClientSpec extends ClientSpecification {
         SearchResult<WorkflowSummary> result = new SearchResult<>()
         result.totalHits = 1
         result.results = [new WorkflowSummary()]
-
+        GenericType<SearchResult<WorkflowSummary>> searchResultWorkflowSummary =
+                new GenericType<SearchResult<WorkflowSummary>>() {}
         URI uri = createURI("workflow/search?query=$query")
 
         when:
         SearchResult<WorkflowSummary> searchResult = workflowClient.search(query)
 
         then:
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, searchResultWorkflowSummary) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1
@@ -58,17 +56,16 @@ class WorkflowClientSpec extends ClientSpecification {
         String query = 'my_complex_query'
         SearchResult<Workflow> result = new SearchResult<>()
         result.totalHits = 1
-        result.results = [new Workflow(workflowDefinition: new WorkflowDef(), createTime: System.currentTimeMillis() )]
-
+        result.results = [new Workflow(workflowDefinition: new WorkflowDef(), createTime: System.currentTimeMillis())]
+        GenericType<SearchResult<Workflow>> searchResultWorkflow =
+                new GenericType<SearchResult<Workflow>>() {}
         URI uri = createURI("workflow/search-v2?query=$query")
 
         when:
         SearchResult<Workflow> searchResult = workflowClient.searchV2('my_complex_query')
 
         then:
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, searchResultWorkflow) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1
@@ -85,16 +82,15 @@ class WorkflowClientSpec extends ClientSpecification {
         SearchResult<WorkflowSummary> result = new SearchResult<>()
         result.totalHits = 1
         result.results = [new WorkflowSummary()]
-
+        GenericType<SearchResult<WorkflowSummary>> searchResultWorkflowSummary =
+                new GenericType<SearchResult<WorkflowSummary>>() {}
         URI uri = createURI("workflow/search?start=$start&size=$size&sort=$sort&freeText=$freeText&query=$query")
 
         when:
         SearchResult<WorkflowSummary> searchResult = workflowClient.search(start, size, sort, freeText, query)
 
         then:
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, searchResultWorkflowSummary) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1
@@ -110,17 +106,16 @@ class WorkflowClientSpec extends ClientSpecification {
         String freeText = 'text'
         SearchResult<Workflow> result = new SearchResult<>()
         result.totalHits = 1
-        result.results = [new Workflow(workflowDefinition: new WorkflowDef(), createTime: System.currentTimeMillis() )]
-
+        result.results = [new Workflow(workflowDefinition: new WorkflowDef(), createTime: System.currentTimeMillis())]
+        GenericType<SearchResult<Workflow>> searchResultWorkflow =
+                new GenericType<SearchResult<Workflow>>() {}
         URI uri = createURI("workflow/search-v2?start=$start&size=$size&sort=$sort&freeText=$freeText&query=$query")
 
         when:
         SearchResult<Workflow> searchResult = workflowClient.searchV2(start, size, sort, freeText, query)
 
         then:
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri,searchResultWorkflow) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1

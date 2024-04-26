@@ -12,12 +12,11 @@
  */
 package com.netflix.conductor.client.http
 
-import org.glassfish.jersey.client.ClientResponse
-
 import com.netflix.conductor.common.metadata.tasks.Task
 import com.netflix.conductor.common.run.SearchResult
 import com.netflix.conductor.common.run.TaskSummary
 
+import jakarta.ws.rs.core.GenericType
 import spock.lang.Subject
 
 class TaskClientSpec extends ClientSpecification {
@@ -36,16 +35,15 @@ class TaskClientSpec extends ClientSpecification {
         SearchResult<TaskSummary> result = new SearchResult<>()
         result.totalHits = 1
         result.results = [new TaskSummary()]
-
+        GenericType<SearchResult<TaskSummary>> searchResultTaskSummary =
+                new GenericType<SearchResult<TaskSummary>>() {}
         URI uri = createURI("tasks/search?query=$query")
 
         when:
         SearchResult<TaskSummary> searchResult = taskClient.search(query)
 
         then:
-        1 * requestHandler.get(uri) >>  Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, searchResultTaskSummary) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1
@@ -58,6 +56,8 @@ class TaskClientSpec extends ClientSpecification {
         SearchResult<Task> result = new SearchResult<>()
         result.totalHits = 1
         result.results = [new Task()]
+        GenericType<SearchResult<Task>> searchResultTask =
+                new GenericType<SearchResult<Task>>() {}
 
         URI uri = createURI("tasks/search-v2?query=$query")
 
@@ -65,9 +65,7 @@ class TaskClientSpec extends ClientSpecification {
         SearchResult<Task> searchResult = taskClient.searchV2('my_complex_query')
 
         then:
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, searchResultTask) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1
@@ -84,6 +82,8 @@ class TaskClientSpec extends ClientSpecification {
         SearchResult<TaskSummary> result = new SearchResult<>()
         result.totalHits = 1
         result.results = [new TaskSummary()]
+        GenericType<SearchResult<TaskSummary>> searchResultTaskSummary =
+                new GenericType<SearchResult<TaskSummary>>() {}
 
         URI uri = createURI("tasks/search?start=$start&size=$size&sort=$sort&freeText=$freeText&query=$query")
 
@@ -91,9 +91,7 @@ class TaskClientSpec extends ClientSpecification {
         SearchResult<TaskSummary> searchResult = taskClient.search(start, size, sort, freeText, query)
 
         then:
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, searchResultTaskSummary) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1
@@ -110,6 +108,8 @@ class TaskClientSpec extends ClientSpecification {
         SearchResult<Task> result = new SearchResult<>()
         result.totalHits = 1
         result.results = [new Task()]
+        GenericType<SearchResult<Task>> searchResultTask =
+                new GenericType<SearchResult<Task>>() {}
 
         URI uri = createURI("tasks/search-v2?start=$start&size=$size&sort=$sort&freeText=$freeText&query=$query")
 
@@ -117,9 +117,7 @@ class TaskClientSpec extends ClientSpecification {
         SearchResult<Task> searchResult = taskClient.searchV2(start, size, sort, freeText, query)
 
         then:
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, searchResultTask) >> result
 
         searchResult.totalHits == result.totalHits
         searchResult.results && searchResult.results.size() == 1

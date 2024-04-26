@@ -11,11 +11,11 @@
  * specific language governing permissions and limitations under the License.
  */
 package com.netflix.conductor.client.http
-import org.glassfish.jersey.client.ClientResponse
 
 import com.netflix.conductor.client.exception.ConductorClientException
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef
 
+import jakarta.ws.rs.core.GenericType
 import spock.lang.Subject
 
 class MetadataClientSpec extends ClientSpecification {
@@ -82,13 +82,13 @@ class MetadataClientSpec extends ClientSpecification {
         given:
         List<WorkflowDef> result = new ArrayList<WorkflowDef>()
         URI uri = createURI("metadata/workflow/latest-versions")
+        GenericType<List<WorkflowDef>> workflowDefList =
+                new GenericType<List<WorkflowDef>>() {};
 
         when:
         metadataClient.getAllWorkflowsWithLatestVersions()
 
         then:
-        1 * requestHandler.get(uri) >>  Mock(ClientResponse.class) {
-            getEntity(_) >> result
-        }
+        1 * requestHandler.getWithGenericType(uri, workflowDefList) >>  result
     }
 }
