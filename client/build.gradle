@@ -33,7 +33,6 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:2.17.0'
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0"
-//    implementation 'javax.xml.ws:jaxws-api:2.3.1' //Needed for jackson-jaxrs-json-provider
 
     implementation "org.apache.commons:commons-lang3"
     implementation "commons-io:commons-io:${revCommonsIo}"

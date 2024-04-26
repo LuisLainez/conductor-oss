@@ -171,7 +171,7 @@ public abstract class ClientBase {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
             Invocation.Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri);
             if (responseType == null) {
-                webResourceBuilder.post(Entity.json(request), responseType);
+                webResourceBuilder.post(Entity.json(request));
                 return null;
             }
             return postWithEntity.apply(webResourceBuilder);
@@ -195,7 +195,7 @@ public abstract class ClientBase {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
             Invocation.Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri);
             if (responseType == null) {
-                webResourceBuilder.post(Entity.json(request), responseType);
+                webResourceBuilder.post(Entity.json(request));
                 return null;
             }
             return postWithEntity.apply(webResourceBuilder);
