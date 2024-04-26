@@ -12,6 +12,7 @@
  */
 package com.netflix.conductor.client.http
 
+import jakarta.ws.rs.core.GenericType
 import org.glassfish.jersey.client.ClientResponse
 
 import com.netflix.conductor.common.metadata.events.EventHandler
@@ -78,15 +79,13 @@ class EventClientSpec extends ClientSpecification {
         def handlers = [new EventHandler(), new EventHandler()]
         String eventName = "test"
         URI uri = createURI("event/$eventName?activeOnly=$activeOnly")
-
+        GenericType type = new GenericType<List<EventHandler>>() {}
         when:
         def eventHandlers = eventClient.getEventHandlers(eventName, activeOnly)
 
         then:
         eventHandlers && eventHandlers.size() == 2
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            readEntity(_) >> handlers
-        }
+        1 * requestHandler.getWithGenericType(uri, type) >> handlers
 
         where:
         activeOnly << [true, false]
