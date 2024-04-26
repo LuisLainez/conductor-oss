@@ -12,12 +12,17 @@
  */
 package com.netflix.conductor.common.config;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.conductor.common.jackson.JsonProtoModule;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
  * A Factory class for creating a customized {@link ObjectMapper}. This is only used by the
@@ -48,6 +53,10 @@ public class ObjectMapperProvider {
                         JsonInclude.Include.NON_NULL, JsonInclude.Include.ALWAYS));
         objectMapper.registerModule(new JsonProtoModule());
         objectMapper.registerModule(new AfterburnerModule());
+        SimpleModule module = new SimpleModule();
+        module.addAbstractTypeMapping(MultivaluedMap.class,
+                MultivaluedHashMap.class);
+        objectMapper.registerModule(module);
         return objectMapper;
     }
 }
