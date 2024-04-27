@@ -12,10 +12,13 @@
  */
 package com.netflix.conductor.client.http
 
+import org.glassfish.jersey.client.ClientResponse
+
 import com.netflix.conductor.common.metadata.events.EventHandler
 
-import com.sun.jersey.api.client.ClientResponse
-import com.sun.jersey.api.client.WebResource
+import jakarta.ws.rs.client.Entity
+import jakarta.ws.rs.client.Invocation
+import jakarta.ws.rs.core.GenericType
 import spock.lang.Subject
 import spock.lang.Unroll
 
@@ -33,24 +36,29 @@ class EventClientSpec extends ClientSpecification {
         given:
         EventHandler handler = new EventHandler()
         URI uri = createURI("event")
+        Invocation.Builder invocationBuilder = Mock(Invocation.Builder.class)
 
         when:
         eventClient.registerEventHandler(handler)
 
         then:
-        1 * requestHandler.getWebResourceBuilder(uri, handler) >> Mock(WebResource.Builder.class)
+        1 * requestHandler.getWebResourceBuilder(uri) >> invocationBuilder
+        1 * invocationBuilder.post(Entity.json(handler))
+
     }
 
     def "update event handler"() {
         given:
         EventHandler handler = new EventHandler()
         URI uri = createURI("event")
+        Invocation.Builder invocationBuilder = Mock(Invocation.Builder.class)
 
         when:
         eventClient.updateEventHandler(handler)
 
         then:
-        1 * requestHandler.getWebResourceBuilder(uri, handler) >> Mock(WebResource.Builder.class)
+        1 * requestHandler.getWebResourceBuilder(uri) >> invocationBuilder
+        1 * invocationBuilder.put(Entity.json(handler))
     }
 
     def "unregister event handler"() {
@@ -71,15 +79,13 @@ class EventClientSpec extends ClientSpecification {
         def handlers = [new EventHandler(), new EventHandler()]
         String eventName = "test"
         URI uri = createURI("event/$eventName?activeOnly=$activeOnly")
-
+        GenericType type = new GenericType<List<EventHandler>>() {}
         when:
         def eventHandlers = eventClient.getEventHandlers(eventName, activeOnly)
 
         then:
         eventHandlers && eventHandlers.size() == 2
-        1 * requestHandler.get(uri) >> Mock(ClientResponse.class) {
-            getEntity(_) >> handlers
-        }
+        1 * requestHandler.getWithGenericType(uri, type) >> handlers
 
         where:
         activeOnly << [true, false]

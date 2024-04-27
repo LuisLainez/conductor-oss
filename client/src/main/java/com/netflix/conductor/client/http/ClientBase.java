@@ -24,12 +24,14 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
+import org.glassfish.jersey.client.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.client.exception.ConductorClientException;
+import com.netflix.conductor.client.exception.UniformInterfaceException;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.model.BulkResponse;
 import com.netflix.conductor.common.run.ExternalStorageLocation;
@@ -40,10 +42,9 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource.Builder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.core.GenericType;
 
 /** Abstract client for the REST server */
 public abstract class ClientBase {
@@ -112,7 +113,7 @@ public abstract class ClientBase {
         URI uri = null;
         try {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
-            requestHandler.getWebResourceBuilder(uri, request).put();
+            requestHandler.getWebResourceBuilder(uri).put(Entity.json(request));
         } catch (RuntimeException e) {
             handleException(uri, e);
         }
@@ -139,7 +140,7 @@ public abstract class ClientBase {
                 request,
                 queryParams,
                 responseType,
-                builder -> builder.post(responseType),
+                builder -> builder.post(Entity.json(request), responseType),
                 uriVariables);
     }
 
@@ -154,7 +155,7 @@ public abstract class ClientBase {
                 request,
                 queryParams,
                 responseType,
-                builder -> builder.post(responseType),
+                builder -> builder.post(Entity.json(request), responseType),
                 uriVariables);
     }
 
@@ -162,15 +163,39 @@ public abstract class ClientBase {
             String url,
             Object request,
             Object[] queryParams,
-            Object responseType,
-            Function<Builder, T> postWithEntity,
+            Class<T> responseType,
+            Function<Invocation.Builder, T> postWithEntity,
             Object... uriVariables) {
         URI uri = null;
         try {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
-            Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri, request);
+            Invocation.Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri);
             if (responseType == null) {
-                webResourceBuilder.post();
+                webResourceBuilder.post(Entity.json(request));
+                return null;
+            }
+            return postWithEntity.apply(webResourceBuilder);
+        } catch (UniformInterfaceException e) {
+            handleUniformInterfaceException(e, uri);
+        } catch (RuntimeException e) {
+            handleRuntimeException(e, uri);
+        }
+        return null;
+    }
+
+    private <T> T postForEntity(
+            String url,
+            Object request,
+            Object[] queryParams,
+            GenericType<T> responseType,
+            Function<Invocation.Builder, T> postWithEntity,
+            Object... uriVariables) {
+        URI uri = null;
+        try {
+            uri = getURIBuilder(root + url, queryParams).build(uriVariables);
+            Invocation.Builder webResourceBuilder = requestHandler.getWebResourceBuilder(uri);
+            if (responseType == null) {
+                webResourceBuilder.post(Entity.json(request));
                 return null;
             }
             return postWithEntity.apply(webResourceBuilder);
@@ -184,31 +209,29 @@ public abstract class ClientBase {
 
     protected <T> T getForEntity(
             String url, Object[] queryParams, Class<T> responseType, Object... uriVariables) {
-        return getForEntity(
-                url, queryParams, response -> response.getEntity(responseType), uriVariables);
+        URI uri = null;
+        try {
+            uri = getURIBuilder(root + url, queryParams).build(uriVariables);
+            ClientResponse response = requestHandler.get(uri);
+            if (response.getStatus() < 300) {
+                return response.readEntity(responseType);
+            } else {
+                throw new UniformInterfaceException(response);
+            }
+        } catch (UniformInterfaceException e) {
+            handleUniformInterfaceException(e, uri);
+        } catch (RuntimeException e) {
+            handleRuntimeException(e, uri);
+        }
+        return null;
     }
 
     protected <T> T getForEntity(
             String url, Object[] queryParams, GenericType<T> responseType, Object... uriVariables) {
-        return getForEntity(
-                url, queryParams, response -> response.getEntity(responseType), uriVariables);
-    }
-
-    private <T> T getForEntity(
-            String url,
-            Object[] queryParams,
-            Function<ClientResponse, T> entityProvider,
-            Object... uriVariables) {
         URI uri = null;
-        ClientResponse clientResponse;
         try {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
-            clientResponse = requestHandler.get(uri);
-            if (clientResponse.getStatus() < 300) {
-                return entityProvider.apply(clientResponse);
-            } else {
-                throw new UniformInterfaceException(clientResponse);
-            }
+            return requestHandler.getWithGenericType(uri, responseType);
         } catch (UniformInterfaceException e) {
             handleUniformInterfaceException(e, uri);
         } catch (RuntimeException e) {
@@ -324,7 +347,7 @@ public abstract class ClientBase {
             if (clientResponse.getStatus() < 300) {
                 return;
             }
-            String errorMessage = clientResponse.getEntity(String.class);
+            String errorMessage = clientResponse.readEntity(String.class);
             LOGGER.warn(
                     "Unable to invoke Conductor API with uri: {}, unexpected response from server: statusCode={}, responseBody='{}'.",
                     uri,
@@ -356,32 +379,5 @@ public abstract class ClientBase {
         } else {
             handleRuntimeException(e, uri);
         }
-    }
-
-    /**
-     * Converts ClientResponse object to string with detailed debug information including status
-     * code, media type, response headers, and response body if exists.
-     */
-    private String clientResponseToString(ClientResponse response) {
-        if (response == null) {
-            return null;
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append("[status: ").append(response.getStatus());
-        builder.append(", media type: ").append(response.getType());
-        if (response.getStatus() != 404) {
-            try {
-                String responseBody = response.getEntity(String.class);
-                if (responseBody != null) {
-                    builder.append(", response body: ").append(responseBody);
-                }
-            } catch (RuntimeException ignore) {
-                // Ignore if there is no response body, or IO error - it may have already been read
-                // in certain scenario.
-            }
-        }
-        builder.append(", response headers: ").append(response.getHeaders());
-        builder.append("]");
-        return builder.toString();
     }
 }
