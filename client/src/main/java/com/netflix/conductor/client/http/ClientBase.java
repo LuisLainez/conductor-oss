@@ -212,7 +212,12 @@ public abstract class ClientBase {
         URI uri = null;
         try {
             uri = getURIBuilder(root + url, queryParams).build(uriVariables);
-            return requestHandler.get(uri, responseType);
+            ClientResponse response = requestHandler.get(uri);
+            if (response.getStatus() < 300) {
+                return response.readEntity(responseType);
+            } else {
+                throw new UniformInterfaceException(response);
+            }
         } catch (UniformInterfaceException e) {
             handleUniformInterfaceException(e, uri);
         } catch (RuntimeException e) {
