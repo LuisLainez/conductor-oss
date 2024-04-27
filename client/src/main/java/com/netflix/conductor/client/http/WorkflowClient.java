@@ -312,7 +312,7 @@ public class WorkflowClient extends ClientBase {
      */
     public void runDecider(String workflowId) {
         Validate.notBlank(workflowId, "workflow id cannot be blank");
-        put("workflow/decide/{workflowId}", null, null, workflowId);
+        put("workflow/decide/{workflowId}", null, "", workflowId);
     }
 
     /**
@@ -322,7 +322,7 @@ public class WorkflowClient extends ClientBase {
      */
     public void pauseWorkflow(String workflowId) {
         Validate.notBlank(workflowId, "workflow id cannot be blank");
-        put("workflow/{workflowId}/pause", null, null, workflowId);
+        put("workflow/{workflowId}/pause", null, "", workflowId);
     }
 
     /**
@@ -332,7 +332,7 @@ public class WorkflowClient extends ClientBase {
      */
     public void resumeWorkflow(String workflowId) {
         Validate.notBlank(workflowId, "workflow id cannot be blank");
-        put("workflow/{workflowId}/resume", null, null, workflowId);
+        put("workflow/{workflowId}/resume", null, "", workflowId);
     }
 
     /**
@@ -348,7 +348,7 @@ public class WorkflowClient extends ClientBase {
         put(
                 "workflow/{workflowId}/skiptask/{taskReferenceName}",
                 null,
-                null,
+                "",
                 workflowId,
                 taskReferenceName);
     }
